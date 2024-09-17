@@ -8,10 +8,12 @@ var choice_res: PackedScene = preload("res://scenes/choice.tscn")
 @onready var mono_option: OptionButton = %MonoOption
 @onready var status: Label = %Status
 @onready var args_edit: TextEdit = %ArgsEdit
+@onready var progress_bar: ProgressBar = %ProgressBar
 
 var save: Dictionary = {}
 var downloads: Dictionary = {}
 var current_args_modify: Dictionary = {}
+var current_download: HTTPRequest = null
 
 
 func _ready():
@@ -30,6 +32,8 @@ func _load_save() -> void:
 	for child in choice_container.get_children():
 		child.queue_free()
 	
+	save.versions.sort_custom(func(a, b): return _sort_name_change(a.name) > _sort_name_change(b.name))
+	
 	for version in save.versions:
 		var choice: Node = choice_res.instantiate()
 		choice.get_node("Name").text = version.name
@@ -38,6 +42,12 @@ func _load_save() -> void:
 		choice.get_node("ArgsButton").pressed.connect(_on_args.bind(version))
 		
 		choice_container.add_child(choice)
+
+
+# makes the _mono happen after the lack of anything ones
+func _sort_name_change(v_name: String) -> String:
+	if v_name.ends_with("_mono"): return v_name
+	return v_name + "z"
 
 
 func _save_save() -> void:
@@ -154,7 +164,12 @@ func _recv_versions(_result: int, _response_code: int, _headers: PackedStringArr
 
 
 func _create_version() -> void:
-	status.text = "downloading godot"
+	if status.text != "": # if currently running
+		return
+	
+	status.text = "Downloading godot"
+	progress_bar.modulate = Color.WHITE
+	progress_bar.value = 0
 	
 	var r_name: String = version_option.get_item_text(version_option.selected)
 	var version: Dictionary = downloads[r_name]
@@ -168,19 +183,21 @@ func _create_version() -> void:
 	
 	DirAccess.make_dir_recursive_absolute(download_dir)
 	
-	var http_request = HTTPRequest.new()
-	add_child(http_request)
-	http_request.download_file = download_dir.path_join("godot_zip.zip")
-	http_request.request_completed.connect(_recv_download.bind(download_dir, r_name))
+	current_download = HTTPRequest.new()
+	add_child(current_download)
+	current_download.download_file = download_dir.path_join("godot_zip.zip")
+	current_download.request_completed.connect(_recv_download.bind(download_dir, r_name))
 	
-	var error = http_request.request(download_url)
+	var error = current_download.request(download_url)
 	if error != OK:
 		push_error("An error occurred in the HTTP request.")
 
 
 func _recv_download(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray, \
 		download_dir: String, r_name: String) -> void:
-	status.text = "extracting godot"
+	status.text = "Extracting godot"
+	progress_bar.modulate = Color.TRANSPARENT
+	current_download = null
 	
 	get_tree().process_frame.connect(_extract_file.bind(download_dir, r_name), CONNECT_ONE_SHOT)
 
@@ -198,7 +215,12 @@ func _extract_file(download_dir: String, r_name: String) -> void:
 	_save_save()
 	_load_save()
 	
-	status.text = "done"
+	status.text = ""
+
+
+func _process(delta: float) -> void:
+	if current_download != null:
+		progress_bar.value = float(current_download.get_downloaded_bytes()) / float(current_download.get_body_size()) * 100.0
 
 
 func _on_args(version: Dictionary) -> void:
