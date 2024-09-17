@@ -1,0 +1,136 @@
+[gd_scene load_steps=2 format=3 uid="uid://3h5re4sw8b54"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_yc2qs"]
+
+[node name="PanelContainer" type="TabContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+current_tab = 0
+tabs_visible = false
+script = ExtResource("1_yc2qs")
+
+[node name="NormalView" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 23
+metadata/_tab_index = 0
+
+[node name="Root" type="VBoxContainer" parent="NormalView"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="NormalView/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="NormalView/Root/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="ChoiceContainer" type="VBoxContainer" parent="NormalView/Root/ScrollContainer/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="NewButton" type="Button" parent="NormalView/Root"]
+layout_mode = 2
+text = "New Version"
+
+[node name="NewView" type="MarginContainer" parent="."]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+metadata/_tab_index = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NewView"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="NewView/VBoxContainer"]
+layout_mode = 2
+text = "Godot Version"
+vertical_alignment = 2
+
+[node name="VersionOption" type="OptionButton" parent="NewView/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 1
+popup/item_0/text = "Loading..."
+
+[node name="Label2" type="Label" parent="NewView/VBoxContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "C# Enabled"
+vertical_alignment = 2
+
+[node name="MonoOption" type="OptionButton" parent="NewView/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 2
+popup/item_0/text = "Regular"
+popup/item_1/text = "Mono (C#)"
+popup/item_1/id = 1
+
+[node name="Status" type="Label" parent="NewView/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CreateButton" type="Button" parent="NewView/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+text = "Create"
+
+[node name="DoneButton" type="Button" parent="NewView/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+text = "Done"
+
+[node name="EditArgsView" type="MarginContainer" parent="."]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+metadata/_tab_index = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="EditArgsView"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="EditArgsView/VBoxContainer"]
+layout_mode = 2
+text = "Arguments"
+
+[node name="ArgsEdit" type="TextEdit" parent="EditArgsView/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Button" type="Button" parent="EditArgsView/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+text = "Done"
+
+[connection signal="pressed" from="NormalView/Root/NewButton" to="." method="_open_create_menu"]
+[connection signal="pressed" from="NewView/VBoxContainer/CreateButton" to="." method="_create_version"]
+[connection signal="pressed" from="NewView/VBoxContainer/DoneButton" to="." method="set_current_tab" binds= [0]]
+[connection signal="pressed" from="EditArgsView/VBoxContainer/Button" to="." method="_modify_args"]
