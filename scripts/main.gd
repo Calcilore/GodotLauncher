@@ -10,6 +10,7 @@ var choice_res: PackedScene = preload("res://scenes/choice.tscn")
 @onready var args_edit: TextEdit = %ArgsEdit
 @onready var progress_bar: ProgressBar = %ProgressBar
 @onready var delete_confirmation: AcceptDialog = %DeleteConfirmation
+@onready var close_on_launch_box: CheckBox = %CloseOnLaunchBox
 
 var save: Dictionary = {}
 var downloads: Dictionary = {}
@@ -30,6 +31,17 @@ func _load_save() -> void:
 	if !save.has("versions"):
 		save.versions = []
 	
+	# maybe i should make a proper options system
+	if !save.has("options"):
+		save.options = {
+			"close_on_launch": true
+		}
+	else:
+		if !save.options.has("close_on_launch"):
+			save.options.close_on_launch = true
+	
+	close_on_launch_box.set_pressed_no_signal(save.options.close_on_launch)
+	
 	for child in choice_container.get_children():
 		child.queue_free()
 	
@@ -43,6 +55,11 @@ func _load_save() -> void:
 		choice.get_node("ArgsButton").pressed.connect(_on_args.bind(version))
 		
 		choice_container.add_child(choice)
+
+
+func _toggle_close_on_launch(toggled_on: bool) -> void:
+	save.options.close_on_launch = !save.options.close_on_launch
+	_save_save()
 
 
 # makes the _mono happen after the lack of anything ones
@@ -81,7 +98,8 @@ func _on_open(version: Dictionary) -> void:
 	
 	OS.execute("bash", ["-c", command])
 	
-	get_tree().quit(0)
+	if save.options.close_on_launch:
+		get_tree().quit(0)
 
 
 func _search_path(dir: DirAccess, on_file: Callable, previous: String = "") -> String:
@@ -141,6 +159,10 @@ func _open_create_menu() -> void:
 	var error = http_request.request("https://api.github.com/repos/godotengine/godot/releases")
 	if error != OK:
 		push_error("An error occurred in the HTTP request.")
+
+
+func _open_options_menu() -> void:
+	current_tab = 3
 
 
 func _recv_versions(_result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
