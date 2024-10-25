@@ -48,6 +48,12 @@ size_flags_vertical = 3
 layout_mode = 2
 text = "New Version"
 
+[node name="DeleteConfirmation" type="ConfirmationDialog" parent="NormalView"]
+unique_name_in_owner = true
+initial_position = 2
+ok_button_text = "Uninstall"
+dialog_text = "Are you sure you want to uninstall this version?"
+
 [node name="NewView" type="MarginContainer" parent="."]
 visible = false
 layout_mode = 2
@@ -141,6 +147,7 @@ size_flags_vertical = 8
 text = "Done"
 
 [connection signal="pressed" from="NormalView/Root/NewButton" to="." method="_open_create_menu"]
+[connection signal="canceled" from="NormalView/DeleteConfirmation" to="." method="_delete_confirmation_canceled"]
 [connection signal="pressed" from="NewView/VBoxContainer/CreateButton" to="." method="_create_version"]
 [connection signal="pressed" from="NewView/VBoxContainer/DoneButton" to="." method="set_current_tab" binds= [0]]
 [connection signal="pressed" from="EditArgsView/VBoxContainer/Button" to="." method="_modify_args"]

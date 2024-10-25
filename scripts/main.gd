@@ -9,6 +9,7 @@ var choice_res: PackedScene = preload("res://scenes/choice.tscn")
 @onready var status: Label = %Status
 @onready var args_edit: TextEdit = %ArgsEdit
 @onready var progress_bar: ProgressBar = %ProgressBar
+@onready var delete_confirmation: AcceptDialog = %DeleteConfirmation
 
 var save: Dictionary = {}
 var downloads: Dictionary = {}
@@ -66,16 +67,19 @@ func _on_open(version: Dictionary) -> void:
 		return file_name.ends_with(".x86_64") or file_name.ends_with(".64")
 	)
 	
-	var executable: String = ProjectSettings.globalize_path(dir.get_current_dir().path_join(file))
+	# get command to execute
+	var executable: String = '"' + ProjectSettings.globalize_path(dir.get_current_dir().path_join(file)) + '"'
 	var args: String = version.args.replace("\n", " ")
 	if args.contains("%command%"):
 		args = args.replace("%command%", executable)
 	else:
 		args = executable + " " + args
 	
-	print("Running command: " + args)
+	# make real command that is non blocking
+	var command: String = "cd ~; nohup %s > %s &" % [args, ProjectSettings.globalize_path("user://log.log")]
+	print("Running command: ", command)
 	
-	OS.execute_with_pipe("bash", ["-c", "cd ~;" + args])
+	OS.execute("bash", ["-c", command])
 	
 	get_tree().quit(0)
 
@@ -111,12 +115,20 @@ func _search_path(dir: DirAccess, on_file: Callable, previous: String = "") -> S
 
 
 func _on_uninstall(version: Dictionary) -> void:
-	OS.execute("rm", ["-r", ProjectSettings.globalize_path("user://versions".path_join(version.name))])
-	
-	save.versions.erase(version)
-	
-	_save_save()
-	_load_save()
+	delete_confirmation.show()
+	delete_confirmation.confirmed.connect(func():
+		OS.execute("rm", ["-r", ProjectSettings.globalize_path("user://versions".path_join(version.name))])
+		
+		save.versions.erase(version)
+		
+		_save_save()
+		_load_save()
+	, CONNECT_ONE_SHOT)
+
+
+func _delete_confirmation_canceled() -> void:
+	for connection in delete_confirmation.confirmed.get_connections():
+		delete_confirmation.confirmed.disconnect(connection.callable)
 
 
 func _open_create_menu() -> void:
@@ -204,7 +216,7 @@ func _recv_download(_result: int, _response_code: int, _headers: PackedStringArr
 
 func _extract_file(download_dir: String, r_name: String) -> void:
 	var dir: String = ProjectSettings.globalize_path(download_dir)
-	OS.execute("bash", ["-c", "cd " + dir + ";unzip godot_zip.zip"])
+	OS.execute("bash", ["-c", "cd '" + dir + "';unzip godot_zip.zip"])
 	DirAccess.remove_absolute(dir.path_join("godot_zip.zip"))
 	
 	save.versions.append({
