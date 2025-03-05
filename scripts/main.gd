@@ -232,7 +232,6 @@ func _recv_download(_result: int, _response_code: int, _headers: PackedStringArr
 	status.text = "Extracting godot"
 	progress_bar.modulate = Color.TRANSPARENT
 	current_download = null
-	current_tab = 0
 	
 	get_tree().process_frame.connect(_extract_file.bind(download_dir, r_name), CONNECT_ONE_SHOT)
 
@@ -251,6 +250,7 @@ func _extract_file(download_dir: String, r_name: String) -> void:
 	_load_save()
 	
 	status.text = ""
+	current_tab = 0
 
 
 func _process(delta: float) -> void:
