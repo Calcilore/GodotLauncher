@@ -250,6 +250,7 @@ func _extract_file(download_dir: String, r_name: String) -> void:
 	_load_save()
 	
 	status.text = ""
+	current_tab = 0
 
 
 func _process(delta: float) -> void:
